@@ -1,0 +1,175 @@
+.investment-container {
+  width: 100%;
+  max-width: 1200px;
+  padding: 20px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+}
+
+@media (min-width: 768px) {
+  .investment-container {
+    grid-template-columns: 2fr 1fr;
+  }
+}
+
+.card {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  overflow: hidden;
+}
+
+.card-header {
+  padding: 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.card-title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.card-subtitle {
+  color: #666;
+  font-size: 0.875rem;
+  margin-top: 5px;
+}
+
+.card-content {
+  padding: 20px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.stat-box {
+  padding: 15px;
+  border-radius: 6px;
+  text-align: center;
+}
+
+.stat-box.cash {
+  background: #f1f5f9;
+}
+
+.stat-box.msft {
+  background: #e8f4ff;
+}
+
+.stat-box.pets {
+  background: #fff1f1;
+}
+
+.stat-box.wcom {
+  background: #f1fff1;
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  color: #666;
+  margin-bottom: 5px;
+}
+
+.stat-value {
+  font-size: 1.25rem;
+  font-weight: bold;
+}
+
+.button-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.button-container {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: none;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.button-primary {
+  background: #0066cc;
+  color: white;
+}
+
+.button-primary:hover {
+  background: #0052a3;
+}
+
+.button-outline {
+  background: white;
+  color: #0066cc;
+  border: 1px solid #0066cc;
+}
+
+.button-outline:hover {
+  background: #f0f7ff;
+}
+
+.button-secondary {
+  background: #f1f5f9;
+  color: #333;
+}
+
+.button-secondary:hover {
+  background: #e2e8f0;
+}
+
+.news-container {
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.news-item {
+  padding: 15px;
+  border-bottom: 1px solid #eee;
+  margin-bottom: 10px;
+}
+
+.news-item.msft {
+  background: #e8f4ff;
+}
+
+.news-item.pets {
+  background: #fff1f1;
+}
+
+.news-item.wcom {
+  background: #f1fff1;
+}
+
+.news-title {
+  font-weight: 600;
+  font-size: 0.875rem;
+  margin-bottom: 5px;
+}
+
+.news-impact {
+  color: #666;
+  font-size: 0.875rem;
+  margin-bottom: 3px;
+}
+
+.news-price {
+  color: #999;
+  font-size: 0.75rem;
+}

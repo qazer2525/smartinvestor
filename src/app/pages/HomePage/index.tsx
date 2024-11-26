@@ -4,21 +4,23 @@ import { NavBar } from 'app/components/NavBar';
 import { Masthead } from './Masthead';
 import { Features } from './Features';
 import { PageWrapper } from 'app/components/PageWrapper';
+import InvestmentPlayground from './InvestmentPlayground';
 
 export function HomePage() {
   return (
     <>
-      <Helmet>
+      {/* <Helmet>
         <title>Home Page</title>
         <meta
           name="description"
           content="A React Boilerplate application homepage"
         />
       </Helmet>
-      <NavBar />
+      <NavBar /> */}
       <PageWrapper>
-        <Masthead />
-        <Features />
+        {/* <Masthead />
+        <Features /> */}
+        <InvestmentPlayground />
       </PageWrapper>
     </>
   );
