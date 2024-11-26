@@ -71,6 +71,8 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
+    "predeploy": "yarn build",
+    "deploy": "gh-pages -d build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "start:prod": "yarn run build && serve -s build",
@@ -85,6 +87,7 @@
     "prettify": "prettier --write",
     "extract-messages": "i18next-scanner --config=internals/extractMessages/i18next-scanner.config.js"
   },
+  "homepage": "https://github.com/qazer2525/smartinvestor",
   "eslintConfig": {
     "extends": "react-app"
   },
@@ -130,6 +133,7 @@
     }
   },
   "devDependencies": {
-    "@shadcn/ui": "0.0.4"
+    "@shadcn/ui": "0.0.4",
+    "gh-pages": "6.2.0"
   }
 }
