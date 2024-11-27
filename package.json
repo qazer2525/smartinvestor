@@ -87,7 +87,7 @@
     "prettify": "prettier --write",
     "extract-messages": "i18next-scanner --config=internals/extractMessages/i18next-scanner.config.js"
   },
-  "homepage": "https://github.com/qazer2525/smartinvestor",
+  "homepage": "https://qazer2525.github.io/smartinvestor/",
   "eslintConfig": {
     "extends": "react-app"
   },

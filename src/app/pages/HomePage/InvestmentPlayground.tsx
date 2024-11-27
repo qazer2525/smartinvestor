@@ -1,5 +1,5 @@
 import { SetStateAction, useEffect, useState } from 'react';
-import { Line, ResponsiveContainer } from 'recharts';
+import { Line } from 'recharts';
 import {
   LineChart,
   XAxis,
@@ -1104,7 +1104,17 @@ const InvestmentPlayground = () => {
         >
           News
           {showNotification && activeTab !== 'news' && (
-            <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
+            <span
+              style={{
+                position: 'absolute',
+                top: '4px',
+                right: '4px',
+                width: '8px',
+                height: '8px',
+                backgroundColor: 'red',
+                borderRadius: '50%',
+              }}
+            />
           )}
         </button>
       </div>
