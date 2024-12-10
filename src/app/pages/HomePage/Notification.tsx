@@ -18,7 +18,7 @@ interface ToastNotification {
 interface ToastNotificationsProps {
   news: NewsItem[];
   currentYear: string;
-  currentIndex: number; // Add this to track quarter changes
+  currentIndex: number;
 }
 
 const ToastNotifications: React.FC<ToastNotificationsProps> = ({
@@ -49,7 +49,6 @@ const ToastNotifications: React.FC<ToastNotificationsProps> = ({
       display: 'flex',
       flexDirection: 'column',
       gap: '8px',
-      animation: 'slideIn 0.3s ease-out',
     },
     header: {
       display: 'flex',
@@ -90,7 +89,7 @@ const ToastNotifications: React.FC<ToastNotificationsProps> = ({
     progress: {
       height: '100%',
       backgroundColor: '#4CAF50',
-      animation: 'countdown 5s linear forwards',
+      width: '100%',
     },
   };
 
@@ -142,7 +141,6 @@ const ToastNotifications: React.FC<ToastNotificationsProps> = ({
   };
 
   useEffect(() => {
-    // Only process news if the quarter has changed
     if (currentIndex !== lastIndexRef.current) {
       lastIndexRef.current = currentIndex;
 
@@ -150,7 +148,6 @@ const ToastNotifications: React.FC<ToastNotificationsProps> = ({
         .filter((item): item is NewsItem & { company: string } => {
           if (!item.company || !item.title) return false;
           const newsId = `${item.company}-${item.title}-${currentYear}`;
-          // Only include news we haven't processed before
           if (processedNews.current.has(newsId)) return false;
           processedNews.current.add(newsId);
           return true;
@@ -173,68 +170,77 @@ const ToastNotifications: React.FC<ToastNotificationsProps> = ({
     setNotifications(prev => prev.filter(n => n.id !== id));
   };
 
-  // Auto-remove notifications after 5 seconds
   useEffect(() => {
-    const timeouts = notifications.map(notification =>
-      setTimeout(() => removeNotification(notification.id), 5000),
-    );
+    notifications.forEach(notification => {
+      const timer = setTimeout(() => {
+        removeNotification(notification.id);
+      }, 5000);
 
-    return () => timeouts.forEach(timeout => clearTimeout(timeout));
+      return () => clearTimeout(timer);
+    });
   }, [notifications]);
 
   return (
-    <>
+    <div style={styles.container}>
       <style>
         {`
-          @keyframes slideIn {
-            from {
-              transform: translateX(100%);
-              opacity: 0;
-            }
-            to {
-              transform: translateX(0);
-              opacity: 1;
-            }
+          .notification-enter {
+            opacity: 0;
+            transform: translateX(100%);
           }
-
+          .notification-enter-active {
+            opacity: 1;
+            transform: translateX(0);
+            transition: opacity 300ms, transform 300ms;
+          }
+          .notification-exit {
+            opacity: 1;
+            transform: translateX(0);
+          }
+          .notification-exit-active {
+            opacity: 0;
+            transform: translateX(100%);
+            transition: opacity 300ms, transform 300ms;
+          }
           @keyframes countdown {
-            from {
-              width: 100%;
-            }
-            to {
-              width: 0%;
-            }
+            from { width: 100%; }
+            to { width: 0%; }
+          }
+          .progress-bar {
+            animation: countdown 5s linear forwards;
           }
         `}
       </style>
-      <div style={styles.container}>
-        {notifications.map(notification => (
-          <div key={notification.id} style={styles.notification}>
-            <div style={styles.header}>
-              <div
-                style={{
-                  ...styles.companyTag,
-                  ...getCompanyStyle(notification.company),
-                }}
-              >
-                {getNotificationIcon(notification.type)}
-                {notification.company}
-              </div>
-              <button
-                style={styles.closeButton}
-                onClick={() => removeNotification(notification.id)}
-              >
-                <X size={16} />
-              </button>
+      {notifications.map(notification => (
+        <div
+          key={notification.id}
+          className="notification-enter notification-enter-active"
+          style={styles.notification}
+        >
+          <div style={styles.header}>
+            <div
+              style={{
+                ...styles.companyTag,
+                ...getCompanyStyle(notification.company),
+              }}
+            >
+              {getNotificationIcon(notification.type)}
+              {notification.company}
             </div>
-            <div style={styles.content}>{notification.title}</div>
-            <div style={styles.progressBar}>
-              <div style={styles.progress} />
-            </div>
+            <button
+              style={styles.closeButton}
+              onClick={() => removeNotification(notification.id)}
+            >
+              <X size={16} />
+            </button>
           </div>
-        ))}
-      </div>
-    </>
+          <div style={styles.content}>{notification.title}</div>
+          <div style={styles.progressBar}>
+            <div className="progress-bar" style={styles.progress} />
+          </div>
+        </div>
+      ))}
+    </div>
   );
 };
 

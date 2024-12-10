@@ -1231,10 +1231,10 @@ const InvestmentPlayground = () => {
             }}
           >
             <LineChart
-              width={isMobile ? window.innerWidth - 80 : 600}
+              width={isMobile ? window.innerWidth - 20 : 600}
               height={300}
               data={visibleData}
-              margin={{ right: 20, left: 0, top: 5, bottom: 5 }}
+              margin={{ right: 20, left: 0, top: 0, bottom: 0 }}
             >
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis
