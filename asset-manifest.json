@@ -1,17 +1,17 @@
 {
   "files": {
     "main.css": "/smartinvestor/static/css/main.8b425732.css",
-    "main.js": "/smartinvestor/static/js/main.22a4894a.js",
-    "static/js/214.a0dba27e.chunk.js": "/smartinvestor/static/js/214.a0dba27e.chunk.js",
+    "main.js": "/smartinvestor/static/js/main.70e8fe41.js",
+    "static/js/789.1bd01e1e.chunk.js": "/smartinvestor/static/js/789.1bd01e1e.chunk.js",
     "static/js/981.a090905a.chunk.js": "/smartinvestor/static/js/981.a090905a.chunk.js",
     "static/js/206.628223f5.chunk.js": "/smartinvestor/static/js/206.628223f5.chunk.js",
-    "static/js/867.3a012ece.chunk.js": "/smartinvestor/static/js/867.3a012ece.chunk.js",
+    "static/js/637.eb5daa6c.chunk.js": "/smartinvestor/static/js/637.eb5daa6c.chunk.js",
     "static/media/github-icon.svg": "/smartinvestor/static/media/github-icon.cc72f0952f8f5179b4c3406bed5fb8cc.svg",
     "index.html": "/smartinvestor/index.html",
     "static/media/documentation-icon.svg": "/smartinvestor/static/media/documentation-icon.29cd96c7190f88435b9e45406422a083.svg"
   },
   "entrypoints": [
     "static/css/main.8b425732.css",
-    "static/js/main.22a4894a.js"
+    "static/js/main.70e8fe41.js"
   ]
 }
