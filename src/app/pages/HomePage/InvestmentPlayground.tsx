@@ -9,6 +9,11 @@ import {
   Legend,
 } from 'recharts';
 import { TrendingUp, TrendingDown, DollarSign, RefreshCcw } from 'lucide-react';
+import Tutorial from './Tutorial';
+import TradingModal from './Trading';
+import ProgressBar from './ProgressBar';
+import TimeRangeSelector from './TimeSelector';
+import ToastNotifications from './Notification';
 
 // Helper function to handle responsive styles
 const useResponsiveStyles = () => {
@@ -218,10 +223,10 @@ const getResponsiveStyles = (
   tabs: {
     display: 'flex',
     borderBottom: '1px solid #ddd',
-    marginBottom: '20px',
+    marginBottom: '10px',
     position: isMobile ? 'sticky' : 'relative',
     top: isMobile ? 0 : 'auto',
-    backgroundColor: isMobile ? '#fff' : 'transparent',
+    backgroundColor: isMobile ? '#fff' : '#fff',
     zIndex: isMobile ? 10 : 1,
     width: '100%',
     paddingTop: isMobile ? '0rem' : '1.5rem',
@@ -250,14 +255,32 @@ const getResponsiveStyles = (
   activeContent: {
     display: 'block',
   },
+  notificationDot: {
+    position: 'absolute',
+    top: '4px',
+    right: '4px',
+    width: '8px',
+    height: '8px',
+    backgroundColor: '#ff4444',
+    borderRadius: '50%',
+    display: 'block',
+    zIndex: 10, // Ensure dot appears above other elements
+    pointerEvents: 'none', // Prevent dot from interfering with clicks
+  },
 });
 const InvestmentPlayground = () => {
+  const [chartTimeRange, setChartTimeRange] = useState('all');
+  const [showTutorial, setShowTutorial] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showEndScreen, setShowEndScreen] = useState(false);
   const isMobile = useResponsiveStyles();
   const styles = getResponsiveStyles(isMobile);
   const [activeTab, setActiveTab] = useState('market');
   const [showNotification, setShowNotification] = useState(false);
+  // Add to your existing state in InvestmentPlayground
+  const [tradeModalOpen, setTradeModalOpen] = useState(false);
+  const [selectedCompany, setSelectedCompany] = useState('');
+  const [isBuyAction, setIsBuyAction] = useState(true);
   // Real historical price movements (adjusted for scale)
   const stockData = [
     { year: '1998 Q1', msft: 100, pets: 0, wcom: 100 },
@@ -753,34 +776,70 @@ const InvestmentPlayground = () => {
     };
   };
 
-  const buyStock = company => {
+  // Add this function to handle time range changes
+  const getVisibleData = () => {
+    const currentQuarter = currentIndex;
+    let startIndex = 0;
+
+    switch (chartTimeRange) {
+      case 'quarter':
+        startIndex = Math.max(0, currentQuarter - 1);
+        break;
+      case 'halfYear':
+        startIndex = Math.max(0, currentQuarter - 2);
+        break;
+      case 'year':
+        startIndex = Math.max(0, currentQuarter - 4);
+        break;
+      case 'twoYears':
+        startIndex = Math.max(0, currentQuarter - 8);
+        break;
+      case 'all':
+      default:
+        startIndex = 0;
+    }
+
+    return priceHistory.slice(startIndex);
+  };
+  const handleTrade = (shares: number, isBuy: boolean) => {
     const prices = getCurrentPrices();
-    if (balance >= prices[company]) {
-      setHoldings({
-        ...holdings,
-        [company]: {
-          shares: holdings[company].shares + 1,
-          value: (holdings[company].shares + 1) * prices[company],
-        },
-      });
-      setBalance(balance - prices[company]);
+    const price = prices[selectedCompany];
+
+    if (isBuy) {
+      if (balance >= price * shares) {
+        setHoldings({
+          ...holdings,
+          [selectedCompany]: {
+            shares: holdings[selectedCompany].shares + shares,
+            value: (holdings[selectedCompany].shares + shares) * price,
+          },
+        });
+        setBalance(balance - price * shares);
+      }
+    } else {
+      if (holdings[selectedCompany].shares >= shares) {
+        setHoldings({
+          ...holdings,
+          [selectedCompany]: {
+            shares: holdings[selectedCompany].shares - shares,
+            value: (holdings[selectedCompany].shares - shares) * price,
+          },
+        });
+        setBalance(balance + price * shares);
+      }
     }
   };
 
-  const sellStock = company => {
-    const prices = getCurrentPrices();
-    if (holdings[company].shares > 0) {
-      setHoldings({
-        ...holdings,
-        [company]: {
-          shares: holdings[company].shares - 1,
-          value: (holdings[company].shares - 1) * prices[company],
-        },
-      });
-      setBalance(balance + prices[company]);
-    }
+  const handleTradeClick = (company: string, isBuy: boolean) => {
+    setSelectedCompany(company);
+    setIsBuyAction(isBuy);
+    setTradeModalOpen(true);
   };
 
+  const getMaxBuyShares = (company: string) => {
+    const prices = getCurrentPrices();
+    return Math.floor(balance / prices[company]);
+  };
   // Modified advance market function
   const advanceMarket = () => {
     setShowNotification(true);
@@ -969,6 +1028,7 @@ const InvestmentPlayground = () => {
     }
   };
   const Market = () => {
+    const visibleData = getVisibleData();
     return (
       <div style={styles.card}>
         <div style={styles.cardHeader}>
@@ -977,7 +1037,10 @@ const InvestmentPlayground = () => {
             Current Period: {stockData[currentIndex].year}
           </p>
         </div>
-
+        <TimeRangeSelector
+          currentRange={chartTimeRange}
+          onRangeChange={setChartTimeRange}
+        />
         <div>
           <div
             style={{
@@ -990,7 +1053,7 @@ const InvestmentPlayground = () => {
             <LineChart
               width={isMobile ? window.innerWidth - 80 : 600}
               height={300}
-              data={priceHistory}
+              data={visibleData}
               margin={{ right: 20, left: 0, top: 5, bottom: 5 }}
             >
               <CartesianGrid strokeDasharray="3 3" />
@@ -1052,14 +1115,14 @@ const InvestmentPlayground = () => {
             {['msft', 'pets', 'wcom'].map(company => (
               <div key={company} style={styles.buttonContainer}>
                 <button
-                  onClick={() => buyStock(company)}
+                  onClick={() => handleTradeClick(company, true)}
                   style={{ ...styles.button, ...styles.primaryButton }}
                 >
                   <TrendingUp size={16} />
                   Buy {company.toUpperCase()}
                 </button>
                 <button
-                  onClick={() => sellStock(company)}
+                  onClick={() => handleTradeClick(company, false)}
                   style={{ ...styles.button, ...styles.outlineButton }}
                 >
                   <TrendingDown size={16} />
@@ -1079,12 +1142,28 @@ const InvestmentPlayground = () => {
             </button>
           </div>
         </div>
+        <ProgressBar
+          currentIndex={currentIndex}
+          totalQuarters={stockData.length}
+          currentYear={stockData[currentIndex].year}
+        />
+        <TradingModal
+          isOpen={tradeModalOpen}
+          onClose={() => setTradeModalOpen(false)}
+          onTrade={handleTrade}
+          company={selectedCompany}
+          currentPrice={getCurrentPrices()[selectedCompany]}
+          maxBuyShares={getMaxBuyShares(selectedCompany)}
+          currentShares={holdings[selectedCompany]?.shares || 0}
+          isBuy={isBuyAction}
+        />
       </div>
     );
   };
 
   return (
     <div style={styles.container} className="flex-container">
+      {showTutorial && <Tutorial onClose={() => setShowTutorial(false)} />}
       <div style={styles.tabs}>
         <button
           style={{
@@ -1104,17 +1183,7 @@ const InvestmentPlayground = () => {
         >
           News
           {showNotification && activeTab !== 'news' && (
-            <span
-              style={{
-                position: 'absolute',
-                top: '4px',
-                right: '4px',
-                width: '8px',
-                height: '8px',
-                backgroundColor: 'red',
-                borderRadius: '50%',
-              }}
-            />
+            <span style={styles.notificationDot} />
           )}
         </button>
       </div>
@@ -1134,6 +1203,11 @@ const InvestmentPlayground = () => {
       >
         <News />
       </div>
+      <ToastNotifications
+        news={enhancedNews[stockData[currentIndex].year] || []}
+        currentYear={stockData[currentIndex].year}
+        currentIndex={currentIndex} // Add this prop
+      />
       {showEndScreen && <EndScreen />}
     </div>
   );
