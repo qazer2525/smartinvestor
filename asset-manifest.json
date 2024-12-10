@@ -1,8 +1,8 @@
 {
   "files": {
     "main.css": "/smartinvestor/static/css/main.8b425732.css",
-    "main.js": "/smartinvestor/static/js/main.70e8fe41.js",
-    "static/js/789.1bd01e1e.chunk.js": "/smartinvestor/static/js/789.1bd01e1e.chunk.js",
+    "main.js": "/smartinvestor/static/js/main.960b8008.js",
+    "static/js/789.760f82be.chunk.js": "/smartinvestor/static/js/789.760f82be.chunk.js",
     "static/js/981.a090905a.chunk.js": "/smartinvestor/static/js/981.a090905a.chunk.js",
     "static/js/206.628223f5.chunk.js": "/smartinvestor/static/js/206.628223f5.chunk.js",
     "static/js/637.eb5daa6c.chunk.js": "/smartinvestor/static/js/637.eb5daa6c.chunk.js",
@@ -12,6 +12,6 @@
   },
   "entrypoints": [
     "static/css/main.8b425732.css",
-    "static/js/main.70e8fe41.js"
+    "static/js/main.960b8008.js"
   ]
 }
