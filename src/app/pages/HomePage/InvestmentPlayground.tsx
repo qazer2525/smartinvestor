@@ -268,6 +268,19 @@ const getResponsiveStyles = (
     pointerEvents: 'none', // Prevent dot from interfering with clicks
   },
 });
+interface DataPoint {
+  year: string;
+  msft: number;
+  pets: number;
+  wcom: number;
+  isQuarter?: boolean;
+  isTransition?: boolean;
+}
+
+interface InterpolatedPoint extends DataPoint {
+  isQuarter: boolean;
+  isTransition?: boolean;
+}
 const InvestmentPlayground = () => {
   const [chartTimeRange, setChartTimeRange] = useState('all');
   const [showTutorial, setShowTutorial] = useState(true);
@@ -281,6 +294,18 @@ const InvestmentPlayground = () => {
   const [tradeModalOpen, setTradeModalOpen] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState('');
   const [isBuyAction, setIsBuyAction] = useState(true);
+
+  // Separate historical data from simulation data
+  const historicalData = [
+    { year: '1996 Q1', msft: 40, pets: 0, wcom: 25 },
+    { year: '1996 Q2', msft: 45, pets: 0, wcom: 30 },
+    { year: '1996 Q3', msft: 50, pets: 0, wcom: 35 },
+    { year: '1996 Q4', msft: 55, pets: 0, wcom: 40 },
+    { year: '1997 Q1', msft: 60, pets: 0, wcom: 45 },
+    { year: '1997 Q2', msft: 65, pets: 0, wcom: 50 },
+    { year: '1997 Q3', msft: 70, pets: 0, wcom: 55 },
+    { year: '1997 Q4', msft: 85, pets: 0, wcom: 70 },
+  ];
   // Real historical price movements (adjusted for scale)
   const stockData = [
     { year: '1998 Q1', msft: 100, pets: 0, wcom: 100 },
@@ -305,6 +330,109 @@ const InvestmentPlayground = () => {
     { year: '2002 Q4', msft: 160, pets: 0, wcom: 0 },
   ];
 
+  // Modified interpolation function with type safety
+  const interpolatePoints = (
+    start: number,
+    end: number,
+    points: number,
+    volatilityFactor: number = 0.1,
+  ): number[] => {
+    const result: number[] = [];
+    for (let i = 0; i <= points; i++) {
+      const progress = i / points;
+      const baseValue = start + (end - start) * progress;
+      const volatility = Math.abs(end - start) * volatilityFactor;
+      const randomVariation = (Math.random() - 0.5) * volatility;
+      result.push(Math.max(0, baseValue + randomVariation));
+    }
+    return result;
+  };
+  const pointsPerQuarter = 10;
+  // Modified function to generate detailed data with proper typing
+  const generateDetailedData = (
+    quarterlyData: DataPoint[],
+  ): InterpolatedPoint[] => {
+    const detailedData: InterpolatedPoint[] = [];
+
+    for (let i = 0; i < quarterlyData.length - 1; i++) {
+      const currentQuarter = quarterlyData[i];
+      const nextQuarter = quarterlyData[i + 1];
+
+      // Special handling for transition between historical and stock data
+      if (currentQuarter.year === '1997 Q4' && nextQuarter.year === '1998 Q1') {
+        // Generate transition points
+        const transitionPoints = interpolatePoints(
+          currentQuarter.msft,
+          nextQuarter.msft,
+          pointsPerQuarter,
+          0.05,
+        );
+
+        // Add the current quarter marker
+        detailedData.push({
+          ...currentQuarter,
+          isQuarter: true,
+        });
+
+        // Add transition points
+        for (let j = 1; j < pointsPerQuarter; j++) {
+          detailedData.push({
+            year: `W${j}`,
+            msft: transitionPoints[j],
+            pets: currentQuarter.pets,
+            wcom: interpolatePoints(
+              currentQuarter.wcom,
+              nextQuarter.wcom,
+              pointsPerQuarter,
+              0.05,
+            )[j],
+            isQuarter: false,
+            isTransition: true,
+          });
+        }
+      } else {
+        // Regular interpolation for non-transition periods
+        const msftPoints = interpolatePoints(
+          currentQuarter.msft,
+          nextQuarter.msft,
+          pointsPerQuarter,
+        );
+        const petsPoints = interpolatePoints(
+          currentQuarter.pets,
+          nextQuarter.pets,
+          pointsPerQuarter,
+        );
+        const wcomPoints = interpolatePoints(
+          currentQuarter.wcom,
+          nextQuarter.wcom,
+          pointsPerQuarter,
+        );
+
+        detailedData.push({
+          ...currentQuarter,
+          isQuarter: true,
+        });
+
+        for (let j = 1; j < pointsPerQuarter; j++) {
+          detailedData.push({
+            year: `${currentQuarter.year} W${j}`,
+            msft: msftPoints[j],
+            pets: petsPoints[j],
+            wcom: wcomPoints[j],
+            isQuarter: false,
+          });
+        }
+      }
+    }
+
+    // Add the last quarter
+    detailedData.push({
+      ...quarterlyData[quarterlyData.length - 1],
+      isQuarter: true,
+    });
+
+    return detailedData;
+  };
   // Company-specific news and events
   // Enhanced news coverage
   const enhancedNews = {
@@ -775,31 +903,42 @@ const InvestmentPlayground = () => {
       wcom: current.wcom,
     };
   };
+  // const detailedHistoricalData = generateDetailedData(historicalData);
+  // Update the getVisibleData function
+  // Modified getVisibleData function with proper typing
+  const getVisibleData = (): InterpolatedPoint[] => {
+    const combinedData = [...historicalData, ...stockData];
+    const allDetailedData = generateDetailedData(combinedData);
 
-  // Add this function to handle time range changes
-  const getVisibleData = () => {
-    const currentQuarter = currentIndex;
-    let startIndex = 0;
+    const currentDetailedIndex =
+      (historicalData.length + currentIndex) * pointsPerQuarter;
 
     switch (chartTimeRange) {
       case 'quarter':
-        startIndex = Math.max(0, currentQuarter - 1);
-        break;
+        return allDetailedData.slice(
+          Math.max(0, currentDetailedIndex - Math.floor(pointsPerQuarter)),
+          currentDetailedIndex + 1,
+        );
       case 'halfYear':
-        startIndex = Math.max(0, currentQuarter - 2);
-        break;
+        return allDetailedData.slice(
+          Math.max(0, currentDetailedIndex - pointsPerQuarter * 2),
+          currentDetailedIndex + 1,
+        );
       case 'year':
-        startIndex = Math.max(0, currentQuarter - 4);
-        break;
+        return allDetailedData.slice(
+          Math.max(0, currentDetailedIndex - pointsPerQuarter * 4),
+          currentDetailedIndex + 1,
+        );
       case 'twoYears':
-        startIndex = Math.max(0, currentQuarter - 8);
-        break;
+        return allDetailedData.slice(
+          Math.max(0, currentDetailedIndex - pointsPerQuarter * 8),
+          currentDetailedIndex + 1,
+        );
       case 'all':
+        return allDetailedData.slice(0, currentDetailedIndex + 1);
       default:
-        startIndex = 0;
+        return allDetailedData;
     }
-
-    return priceHistory.slice(startIndex);
   };
   const handleTrade = (shares: number, isBuy: boolean) => {
     const prices = getCurrentPrices();
@@ -1027,16 +1166,57 @@ const InvestmentPlayground = () => {
       setShowNotification(false);
     }
   };
+
+  // Update the XAxis formatting
+  const formatXAxisTick = timeRange => value => {
+    // Handle weekly data points
+    if (value.includes('W')) {
+      const weekNumber = parseInt(value.split('W')[1]);
+      if (timeRange === 'quarter' && weekNumber % 2 === 0) {
+        return `W${weekNumber}`;
+      }
+      if (timeRange === 'halfYear' && weekNumber % 4 === 0) {
+        return `W${weekNumber}`;
+      }
+      return '';
+    }
+
+    // Handle quarterly data points
+    const parts = value.split(' ');
+    const year = parts[0];
+    const quarter = parts[1];
+
+    // Always show full format for shorter time ranges
+    if (timeRange === 'quarter' || timeRange === 'halfYear') {
+      return `${year} ${quarter}`;
+    }
+
+    // For longer time ranges, show all quarters
+    if (quarter) {
+      if (quarter === 'Q1') {
+        return `${year}\n${quarter}`;
+      }
+      return quarter;
+    }
+
+    return value;
+  };
+
   const Market = () => {
     const visibleData = getVisibleData();
     return (
       <div style={styles.card}>
         <div style={styles.cardHeader}>
           <h2 style={styles.title}>Dot-com Companies Comparison (1998-2002)</h2>
-          <p style={styles.subtitle}>
+          {/* <p style={styles.subtitle}>
             Current Period: {stockData[currentIndex].year}
-          </p>
+          </p> */}
         </div>
+        <ProgressBar
+          currentIndex={currentIndex}
+          totalQuarters={stockData.length}
+          currentYear={stockData[currentIndex].year}
+        />
         <TimeRangeSelector
           currentRange={chartTimeRange}
           onRangeChange={setChartTimeRange}
@@ -1060,34 +1240,65 @@ const InvestmentPlayground = () => {
               <XAxis
                 dataKey="year"
                 tick={{ fontSize: isMobile ? 10 : 12 }}
-                interval={isMobile ? 1 : 0}
+                tickFormatter={formatXAxisTick(chartTimeRange)}
+                interval={0}
+                minTickGap={10}
+                angle={-30}
+                textAnchor="end"
+                height={60}
+                padding={{ left: 10, right: 10 }}
               />
               <YAxis
                 domain={[0, 400]}
                 tick={{ fontSize: isMobile ? 10 : 12 }}
               />
-              <Tooltip />
+              <Tooltip
+                formatter={(value: number) => [`$${value.toFixed(2)}`]}
+                labelFormatter={label =>
+                  label.includes('W') ? `Week ${label.split('W')[1]}` : label
+                }
+              />
+              <Legend />
+
               <Legend />
               <Line
                 type="monotone"
                 dataKey="msft"
                 stroke="#00a8e8"
                 name="Microsoft"
-                activeDot={{ r: 8 }}
+                dot={false}
+                activeDot={{
+                  r: 6,
+                  fill: '#00a8e8',
+                  stroke: '#fff',
+                  strokeWidth: 2,
+                }}
               />
               <Line
                 type="monotone"
                 dataKey="pets"
                 stroke="#ff6b6b"
                 name="Pets.com"
-                activeDot={{ r: 8 }}
+                dot={false}
+                activeDot={{
+                  r: 6,
+                  fill: '#ff6b6b',
+                  stroke: '#fff',
+                  strokeWidth: 2,
+                }}
               />
               <Line
                 type="monotone"
                 dataKey="wcom"
                 stroke="#51cf66"
                 name="WorldCom"
-                activeDot={{ r: 8 }}
+                dot={false}
+                activeDot={{
+                  r: 6,
+                  fill: '#51cf66',
+                  stroke: '#fff',
+                  strokeWidth: 2,
+                }}
               />
             </LineChart>
           </div>
@@ -1142,11 +1353,6 @@ const InvestmentPlayground = () => {
             </button>
           </div>
         </div>
-        <ProgressBar
-          currentIndex={currentIndex}
-          totalQuarters={stockData.length}
-          currentYear={stockData[currentIndex].year}
-        />
         <TradingModal
           isOpen={tradeModalOpen}
           onClose={() => setTradeModalOpen(false)}
